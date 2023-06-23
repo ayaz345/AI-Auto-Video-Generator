@@ -19,15 +19,13 @@ def extract_image_prompts(story, num_prompts=5):
     main_subjects = []
     for sentence in sentences:
         doc = nlp(sentence.lower())
-        for chunk in doc.noun_chunks:
-            if chunk.root.dep_ == 'nsubj' and chunk.root.head.text.lower() != 'that':
-                main_subjects.append(chunk)
-
-    if main_subjects:
-        main_subject = main_subjects[0]
-    else:
-        main_subject = None
-
+        main_subjects.extend(
+            chunk
+            for chunk in doc.noun_chunks
+            if chunk.root.dep_ == 'nsubj'
+            and chunk.root.head.text.lower() != 'that'
+        )
+    main_subject = main_subjects[0] if main_subjects else None
     # Find the related words (adjectives, verbs) to the main subject
     related_words = defaultdict(list)
     for sentence in sentences:
@@ -60,7 +58,7 @@ def extract_image_prompts(story, num_prompts=5):
     print("\nGenerated Image Prompts:")
     for idx, prompt in enumerate(image_prompts, start=1):
         print(f"{idx}: {prompt}")
-    
+
     # Ask the user whether they want to proceed or enter their own prompts
     user_input = input("\nDo you want to proceed with these prompts? (y/n): ")
     if user_input.lower() == "y":
